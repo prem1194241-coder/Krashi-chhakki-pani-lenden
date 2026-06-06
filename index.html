@@ -1,0 +1,1648 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Krishi Hisaab-Kitaab (कृषि हिसाब-किताब)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Devanagari:wght@300;400;500;600;700&display=swap');
+        body {
+            font-family: 'Noto Sans Devanagari', sans-serif;
+        }
+        /* Custom print styling to hide interactive elements in PDF */
+        @media print {
+            body * {
+                visibility: hidden;
+            }
+            #print-section, #print-section * {
+                visibility: visible;
+            }
+            #print-section {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+            }
+            .no-print {
+                display: none !important;
+            }
+        }
+    </style>
+</head>
+<body class="bg-stone-50 text-stone-800 min-h-screen flex flex-col">
+
+    <header class="bg-emerald-700 text-white shadow-md no-print">
+        <div class="max-w-7xl mx-auto px-4 py-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row justify-between items-center gap-4">
+            <div class="flex items-center gap-3">
+                <div class="bg-emerald-600 p-2.5 rounded-full shadow-inner">
+                    <svg class="w-8 h-8 text-amber-300" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M19 15c0-1.1-.9-2-2-2h-1V9c0-1.1-.9-2-2-2h-3c-1.1 0-2 .9-2 2v4H8c-1.1 0-2 .9-2 2H5c-.55 0-1 .45-1 1v1c0 .55.45 1 1 1h1c0 1.66 1.34 3 3 3s3-1.34 3-3h4c0 1.66 1.34 3 3 3s3-1.34 3-3h1c.55 0 1-.45 1-1v-1c0-.55-.45-1-1-1h-1zm-10 4c-.55 0-1-.45-1-1s.45-1 1-1 1 .45 1 1-.45 1-1 1zm8 0c-.55 0-1-.45-1-1s.45-1 1-1 1 .45 1 1-.45 1-1 1z"/>
+                        <path d="M14 6c0-.55-.45-1-1-1H9c-.55 0-1 .45-1 1s.45 1 1 1h4c.55 0 1-.45 1-1z"/>
+                    </svg>
+                </div>
+                <div>
+                    <h1 class="text-2xl font-bold tracking-tight">कृषि हिसाब-किताब</h1>
+                    <p class="text-xs text-emerald-100 font-medium font-mono">Khet Jutai, Chakki aur Pani ka Smart Ledger & Cloud Sync</p>
+                </div>
+            </div>
+            
+            <div class="flex flex-wrap gap-2 items-center">
+                <span id="sync-status-badge" class="bg-emerald-800 text-emerald-200 text-xs px-3 py-1.5 rounded-full font-semibold flex items-center gap-1.5 border border-emerald-600">
+                    <span id="sync-status-dot" class="w-2.5 h-2.5 rounded-full bg-emerald-400"></span>
+                    <span id="sync-status-text">Safe Offline</span>
+                </span>
+                <button onclick="openTab('backup')" class="bg-amber-500 hover:bg-amber-600 text-stone-900 font-bold text-xs px-3 py-1.5 rounded-md shadow-sm transition-all flex items-center gap-1">
+                    ☁️ Cloud Sync & Backup
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <nav class="bg-white border-b border-stone-200 sticky top-0 z-30 shadow-sm no-print">
+        <div class="max-w-7xl mx-auto px-2 sm:px-6 lg:px-8">
+            <div class="flex space-x-1 sm:space-x-4 overflow-x-auto py-2 scrollbar-none">
+                <button onclick="openTab('dashboard')" id="btn-dashboard" class="tab-btn px-4 py-2.5 rounded-lg text-sm font-semibold transition-all duration-200 whitespace-nowrap bg-emerald-50 text-emerald-700 border-b-2 border-emerald-600">
+                    📊 Dashboard (कुल हिसाब)
+                </button>
+                <button onclick="openTab('jutai')" id="btn-jutai" class="tab-btn px-4 py-2.5 rounded-lg text-sm font-semibold transition-all duration-200 text-stone-600 hover:bg-stone-50 whitespace-nowrap">
+                    🚜 Khet Jutai (जुताई)
+                </button>
+                <button onclick="openTab('chakki')" id="btn-chakki" class="tab-btn px-4 py-2.5 rounded-lg text-sm font-semibold transition-all duration-200 text-stone-600 hover:bg-stone-50 whitespace-nowrap">
+                    🌾 Chakki Pisai (पिसाई)
+                </button>
+                <button onclick="openTab('pani')" id="btn-pani" class="tab-btn px-4 py-2.5 rounded-lg text-sm font-semibold transition-all duration-200 text-stone-600 hover:bg-stone-50 whitespace-nowrap">
+                    💧 Khet ka Pani (पानी)
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <main class="flex-grow max-w-7xl w-full mx-auto px-4 py-6 sm:px-6 lg:px-8 no-print">
+        
+        <section id="tab-dashboard" class="tab-content block space-y-6">
+            <div class="bg-amber-50 border-l-4 border-amber-500 p-4 rounded-r-lg shadow-sm">
+                <p class="text-sm text-amber-800 font-medium">
+                    <strong>💡 Tips:</strong> Kisi bhi transaction par click karke uski **Slip (invoice)** nikalein, ya fir kisi bhi **Kisaan ke naam** par click karke unka **Pura Ledger Khata** dekhein. Wahan se aap unhe WhatsApp/SMS bhej sakte hain aur download karne se pehle **PDF Preview** bhi dekh sakte hain!
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-stone-200 flex flex-col justify-between hover:shadow-md transition-all">
+                    <div class="flex justify-between items-start mb-4">
+                        <div>
+                            <p class="text-xs font-semibold text-stone-500 uppercase tracking-wider">Khet Jutai Hisaab</p>
+                            <h3 class="text-2xl font-bold text-stone-800 mt-1">जुताई का हिसाब</h3>
+                        </div>
+                        <span class="bg-amber-100 text-amber-800 p-3 rounded-xl text-xl">🚜</span>
+                    </div>
+                    <div class="space-y-2 border-t border-stone-100 pt-3 text-sm">
+                        <div class="flex justify-between"><span class="text-stone-500">Kul Kharcha:</span> <strong class="text-stone-800" id="dash-jutai-total">₹0.00</strong></div>
+                        <div class="flex justify-between"><span class="text-stone-500">Paid (भुगतान):</span> <strong class="text-emerald-600" id="dash-jutai-paid">₹0.00</strong></div>
+                        <div class="flex justify-between"><span class="text-stone-500">Baqaya (बाकी):</span> <strong class="text-rose-600" id="dash-jutai-due">₹0.00</strong></div>
+                    </div>
+                    <button onclick="openTab('jutai')" class="mt-4 w-full bg-stone-100 hover:bg-stone-200 text-stone-700 py-2 rounded-lg text-xs font-bold transition-colors">Record Dekhein &rarr;</button>
+                </div>
+
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-stone-200 flex flex-col justify-between hover:shadow-md transition-all">
+                    <div class="flex justify-between items-start mb-4">
+                        <div>
+                            <p class="text-xs font-semibold text-stone-500 uppercase tracking-wider">Chakki Pisai Hisaab</p>
+                            <h3 class="text-2xl font-bold text-stone-800 mt-1">आटा-दाना पिसाई</h3>
+                        </div>
+                        <span class="bg-amber-100 text-amber-800 p-3 rounded-xl text-xl">🌾</span>
+                    </div>
+                    <div class="space-y-2 border-t border-stone-100 pt-3 text-sm">
+                        <div class="flex justify-between"><span class="text-stone-500">Kul Vajan (Total Wt):</span> <strong class="text-stone-800" id="dash-chakki-wt">0 KG</strong></div>
+                        <div class="flex justify-between"><span class="text-stone-500">Kul Pisai Kamaai:</span> <strong class="text-emerald-600" id="dash-chakki-total">₹0.00</strong></div>
+                        <div class="flex justify-between"><span class="text-stone-500">Baqaya (बाकी):</span> <strong class="text-rose-600" id="dash-chakki-due">₹0.00</strong></div>
+                    </div>
+                    <button onclick="openTab('chakki')" class="mt-4 w-full bg-stone-100 hover:bg-stone-200 text-stone-700 py-2 rounded-lg text-xs font-bold transition-colors">Record Dekhein &rarr;</button>
+                </div>
+
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-stone-200 flex flex-col justify-between hover:shadow-md transition-all">
+                    <div class="flex justify-between items-start mb-4">
+                        <div>
+                            <p class="text-xs font-semibold text-stone-500 uppercase tracking-wider">Khet me Pani Hisaab</p>
+                            <h3 class="text-2xl font-bold text-stone-800 mt-1">सिंचाई / पानी का हिसाब</h3>
+                        </div>
+                        <span class="bg-emerald-100 text-emerald-800 p-3 rounded-xl text-xl">💧</span>
+                    </div>
+                    <div class="space-y-2 border-t border-stone-100 pt-3 text-sm">
+                        <div class="flex justify-between"><span class="text-stone-500">Kul Ghante (Hours):</span> <strong class="text-stone-800" id="dash-pani-hours">0 Hrs</strong></div>
+                        <div class="flex justify-between"><span class="text-stone-500">Kul Bill Amount:</span> <strong class="text-stone-800" id="dash-pani-total">₹0.00</strong></div>
+                        <div class="flex justify-between"><span class="text-stone-500">Baqaya (बाकी):</span> <strong class="text-rose-600" id="dash-pani-due">₹0.00</strong></div>
+                    </div>
+                    <button onclick="openTab('pani')" class="mt-4 w-full bg-stone-100 hover:bg-stone-200 text-stone-700 py-2 rounded-lg text-xs font-bold transition-colors">Record Dekhein &rarr;</button>
+                </div>
+            </div>
+
+            <div class="bg-emerald-800 text-white p-6 rounded-2xl shadow-md flex flex-col sm:flex-row justify-between items-center gap-4">
+                <div>
+                    <h3 class="text-lg font-bold">🎯 Kul Baqaya Paisa (Total Outstanding Dues)</h3>
+                    <p class="text-xs text-emerald-200 mt-1">Sabhi modules ka mila kar bacha hua len-den</p>
+                </div>
+                <div class="text-right">
+                    <span class="text-xs uppercase tracking-wider text-emerald-300 font-bold block">Kul Baqaya Rashi</span>
+                    <span class="text-3xl font-extrabold text-amber-300" id="dash-overall-due">₹0.00</span>
+                </div>
+            </div>
+
+            <div class="bg-white p-6 rounded-2xl border border-stone-200 shadow-sm space-y-4">
+                <h3 class="text-lg font-bold text-stone-800 flex items-center gap-2">👥 Sabhi Kisaano ke Khaton ki Directory</h3>
+                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3" id="dash-farmer-grid">
+                    </div>
+            </div>
+
+            <div class="bg-white p-6 rounded-2xl border border-stone-200 shadow-sm space-y-4">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border-b border-stone-100 pb-3">
+                    <div>
+                        <h3 class="text-lg font-bold text-stone-800 flex items-center gap-2">📢 Sabhi Baqayadaaro ko Reminder (Bulk Message)</h3>
+                        <p class="text-xs text-stone-500">Ek sath sabhi baki bache hisaab ka consolidated message taiyaar karein ya group me bhejein.</p>
+                    </div>
+                    <div class="flex flex-wrap gap-2">
+                        <button onclick="copyBulkConsolidatedMessage()" class="bg-amber-500 hover:bg-amber-600 text-stone-950 font-bold text-xs px-3 py-2 rounded-lg transition-all flex items-center gap-1.5 shadow-sm">
+                            📋 Copy Consolidated Text
+                        </button>
+                        <button onclick="shareBulkWhatsApp()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs px-3 py-2 rounded-lg transition-all flex items-center gap-1.5 shadow-sm">
+                            💬 Group WhatsApp Send
+                        </button>
+                    </div>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-stone-200 text-sm">
+                        <thead class="bg-stone-50">
+                            <tr>
+                                <th class="px-4 py-2 text-left font-semibold text-stone-600 w-12 text-xs">Select</th>
+                                <th class="px-4 py-2 text-left font-semibold text-stone-600 text-xs">Kisaan/Grahak (Baqayadaar)</th>
+                                <th class="px-4 py-2 text-left font-semibold text-stone-600 text-xs">Baqaya Rashi (Outstanding Due)</th>
+                                <th class="px-4 py-2 text-center font-semibold text-stone-600 text-xs w-32">Quick Send</th>
+                            </tr>
+                        </thead>
+                        <tbody id="bulk-debtors-list" class="divide-y divide-stone-100 bg-white">
+                            </tbody>
+                    </table>
+                </div>
+                <div id="no-debtors-msg" class="hidden text-center py-6 text-stone-400 text-sm">🎉 Sabhi ka hisaab barabar hai! Kisi ka bhi paisa baqaya nahi hai.</div>
+            </div>
+        </section>
+
+        <section id="tab-jutai" class="tab-content hidden space-y-6">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                <div>
+                    <h2 class="text-xl font-bold text-stone-800 flex items-center gap-2">🚜 Tractor se Khet Jutai (जुताई का हिसाब)</h2>
+                    <p class="text-xs text-stone-500">Khet ki bigha/acre ya ghante ke hisaab se records banayein</p>
+                </div>
+                <button onclick="openAddModal('jutai')" class="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-sm px-4 py-2.5 rounded-lg shadow-sm flex items-center gap-1.5 transition-colors">
+                    ➕ Nayi Jutai Jodein
+                </button>
+            </div>
+
+            <div class="bg-white p-4 rounded-xl border border-stone-200 shadow-sm flex flex-col sm:flex-row gap-4 items-center justify-between">
+                <div class="w-full sm:w-72 relative">
+                    <input type="text" id="search-jutai" oninput="filterTable('jutai')" placeholder="Kisaan ka naam dhoondhein..." class="w-full text-sm pl-9 pr-4 py-2 border border-stone-300 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none">
+                    <span class="absolute left-3 top-2.5 text-stone-400">🔍</span>
+                </div>
+                <div class="flex gap-2 w-full sm:w-auto justify-end">
+                    <button onclick="exportCSV('jutai')" class="bg-stone-100 hover:bg-stone-200 text-stone-700 font-semibold text-xs px-3 py-2 rounded-lg border border-stone-300 transition-colors">
+                        📊 Export Excel (CSV)
+                    </button>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-xl border border-stone-200 shadow-sm overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-stone-200" id="table-jutai">
+                        <thead class="bg-stone-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-semibold text-stone-500 uppercase tracking-wider whitespace-nowrap">Tareekh</th>
+                                <th class="px-6 py-3 text-left text-xs font-semibold text-stone-500 uppercase tracking-wider font-bold whitespace-nowrap">Kisaan/Khet Owner</th>
+                                <th class="px-6 py-3 text-left text-xs font-semibold text-stone-500 uppercase tracking-wider whitespace-nowrap">Calculation Type</th>
+                                <th class="px-6 py-3 text-left text-xs font-semibold text-stone-500 uppercase tracking-wider whitespace-nowrap">Qty & Rate</th>
+                                <th class="px-6 py-3 text-left text-xs font-semibold text-stone-500 uppercase tracking-wider whitespace-nowrap">Kul Bill</th>
+                                <th class="px-6 py-3 text-left text-xs font-semibold text-stone-500 uppercase tracking-wider font-bold whitespace-nowrap">Paid (जमा)</th>
+                                <th class="px-6 py-3 text-left text-xs font-semibold text-stone-500 uppercase tracking-wider whitespace-nowrap">Baqaya (बाकी)</th>
+                                <th class="px-6 py-3 text-center text-xs font-semibold text-stone-500 uppercase tracking-wider whitespace-nowrap">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-stone-200 bg-white" id="list-jutai"></tbody>
+                    </table>
+                </div>
+                <div id="no-data-jutai" class="hidden text-center py-8 text-stone-400 text-sm">Koi bhi jutai ka record nahi mila.</div>
+            </div>
+        </section>
+
+        <section id="tab-chakki" class="tab-content hidden space-y-6">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                <div>
+                    <h2 class="text-xl font-bold text-stone-800 flex items-center gap-2">🌾 Aata-Dana Chakki Pisai (चक्की पिसाई)</h2>
+                    <p class="text-xs text-stone-500">Aata, Bajra, Makka aadi ki pisai aur bache paise ka hisaab</p>
+                </div>
+                <button onclick="openAddModal('chakki')" class="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-sm px-4 py-2.5 rounded-lg shadow-sm flex items-center gap-1.5 transition-colors">
+                    ➕ Nayi Pisai Jodein
+                </button>
+            </div>
+
+            <div class="bg-white p-4 rounded-xl border border-stone-200 shadow-sm flex flex-col sm:flex-row gap-4 items-center justify-between">
+                <div class="w-full sm:w-72 relative">
+                    <input type="text" id="search-chakki" oninput="filterTable('chakki')" placeholder="Grahak (Customer) ka naam..." class="w-full text-sm pl-9 pr-4 py-2 border border-stone-300 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none">
+                    <span class="absolute left-3 top-2.5 text-stone-400">🔍</span>
+                </div>
+                <button onclick="exportCSV('chakki')" class="bg-stone-100 hover:bg-stone-200 text-stone-700 font-semibold text-xs px-3 py-2 rounded-lg border border-stone-300 transition-colors w-full sm:w-auto">
+                    📊 Export Excel (CSV)
+                </button>
+            </div>
+
+            <div class="bg-white rounded-xl border border-stone-200 shadow-sm overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-stone-200" id="table-chakki">
+                        <thead class="bg-stone-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-semibold text-stone-500 uppercase tracking-wider whitespace-nowrap">Tareekh</th>
+                                <th class="px-6 py-3 text-left text-xs font-semibold text-stone-500 uppercase tracking-wider font-bold whitespace-nowrap">Grahak (Customer)</th>
+                                <th class="px-6 py-3 text-left text-xs font-semibold text-stone-500 uppercase tracking-wider whitespace-nowrap">Anaaj Type</th>
+                                <th class="px-6 py-3 text-left text-xs font-semibold text-stone-500 uppercase tracking-wider font-bold whitespace-nowrap">Vajan (Weight)</th>
+                                <th class="px-6 py-3 text-left text-xs font-semibold text-stone-500 uppercase tracking-wider whitespace-nowrap">Rate (per KG)</th>
+                                <th class="px-6 py-3 text-left text-xs font-semibold text-stone-500 uppercase tracking-wider font-bold whitespace-nowrap">Total Bill</th>
+                                <th class="px-6 py-3 text-left text-xs font-semibold text-stone-500 uppercase tracking-wider font-bold whitespace-nowrap">Paid Amount</th>
+                                <th class="px-6 py-3 text-left text-xs font-semibold text-stone-500 uppercase tracking-wider whitespace-nowrap">Baqaya (बाकी)</th>
+                                <th class="px-6 py-3 text-center text-xs font-semibold text-stone-500 uppercase tracking-wider whitespace-nowrap">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-stone-200 bg-white" id="list-chakki"></tbody>
+                    </table>
+                </div>
+                <div id="no-data-chakki" class="hidden text-center py-8 text-stone-400 text-sm">Chakki par pisai ka koi record nahi hai.</div>
+            </div>
+        </section>
+
+        <section id="tab-pani" class="tab-content hidden space-y-6">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                <div>
+                    <h2 class="text-xl font-bold text-stone-800 flex items-center gap-2">💧 Khet me Pani / Sinchai (सिंचाई का हिसाब)</h2>
+                    <p class="text-xs text-stone-500">Nalke ya tubewell ke ghanto ke hisaab se pani dena ka record</p>
+                </div>
+                <button onclick="openAddModal('pani')" class="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-sm px-4 py-2.5 rounded-lg shadow-sm flex items-center gap-1.5 transition-colors">
+                    ➕ Naya Pani Record Jodein
+                </button>
+            </div>
+
+            <div class="bg-white p-4 rounded-xl border border-stone-200 shadow-sm flex flex-col sm:flex-row gap-4 items-center justify-between">
+                <div class="w-full sm:w-72 relative">
+                    <input type="text" id="search-pani" oninput="filterTable('pani')" placeholder="Khet owner ka naam..." class="w-full text-sm pl-9 pr-4 py-2 border border-stone-300 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none">
+                    <span class="absolute left-3 top-2.5 text-stone-400">🔍</span>
+                </div>
+                <button onclick="exportCSV('pani')" class="bg-stone-100 hover:bg-stone-200 text-stone-700 font-semibold text-xs px-3 py-2 rounded-lg border border-stone-300 transition-colors w-full sm:w-auto">
+                    📊 Export Excel (CSV)
+                </button>
+            </div>
+
+            <div class="bg-white rounded-xl border border-stone-200 shadow-sm overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-stone-200" id="table-pani">
+                        <thead class="bg-stone-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-semibold text-stone-500 uppercase tracking-wider whitespace-nowrap">Tareekh</th>
+                                <th class="px-6 py-3 text-left text-xs font-semibold text-stone-500 uppercase tracking-wider font-bold whitespace-nowrap">Khet Owner/Farmer</th>
+                                <th class="px-6 py-3 text-left text-xs font-semibold text-stone-500 uppercase tracking-wider font-bold whitespace-nowrap">Pani Source</th>
+                                <th class="px-6 py-3 text-left text-xs font-semibold text-stone-500 uppercase tracking-wider whitespace-nowrap">Hours</th>
+                                <th class="px-6 py-3 text-left text-xs font-semibold text-stone-500 uppercase tracking-wider whitespace-nowrap">Rate/Hr</th>
+                                <th class="px-6 py-3 text-left text-xs font-semibold text-stone-500 uppercase tracking-wider font-bold whitespace-nowrap">Total Bill</th>
+                                <th class="px-6 py-3 text-left text-xs font-semibold text-stone-500 uppercase tracking-wider font-bold whitespace-nowrap">Paid</th>
+                                <th class="px-6 py-3 text-left text-xs font-semibold text-stone-500 uppercase tracking-wider whitespace-nowrap">Baqaya (बाकी)</th>
+                                <th class="px-6 py-3 text-center text-xs font-semibold text-stone-500 uppercase tracking-wider whitespace-nowrap">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-stone-200 bg-white" id="list-pani"></tbody>
+                    </table>
+                </div>
+                <div id="no-data-pani" class="hidden text-center py-8 text-stone-400 text-sm">Sinchai ka koi record nahi mila.</div>
+            </div>
+        </section>
+
+        <section id="tab-backup" class="tab-content hidden space-y-6">
+            <div>
+                <h2 class="text-xl font-bold text-stone-800 flex items-center gap-2">💾 Data Protection & Cloud Sync (सुरक्षा और क्लाउड)</h2>
+                <p class="text-xs text-stone-500">Offline aur GitHub Cloud Sync dono ka upyog karein taaki data kabhi delete na ho.</p>
+            </div>
+
+            <div class="bg-gradient-to-br from-slate-800 to-emerald-950 text-white p-6 rounded-2xl shadow-md space-y-6">
+                <div class="flex items-center justify-between gap-3 flex-wrap">
+                    <div class="flex items-center gap-3">
+                        <span class="text-3xl">☁️</span>
+                        <div>
+                            <h3 class="text-lg font-bold">GitHub Online Save Settings</h3>
+                            <p class="text-xs text-emerald-200">Apne GitHub account me repository banakar data hamesha ke liye safe rakhein.</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-2 bg-slate-900/50 p-2 rounded-xl border border-emerald-500/30">
+                        <label class="text-xs font-bold text-emerald-200 cursor-pointer" for="gh-auto-sync">Auto Upload ⚡</label>
+                        <input type="checkbox" id="gh-auto-sync" onchange="saveCredentials()" checked class="w-4 h-4 text-emerald-600 border-stone-300 rounded focus:ring-emerald-500 cursor-pointer">
+                    </div>
+                </div>
+
+                <p id="env-indicator-msg" class="text-xs text-emerald-300 font-bold bg-slate-900/40 p-3 rounded-lg border border-emerald-500/20"></p>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-stone-800">
+                    <div>
+                        <label class="block text-xs font-bold text-emerald-100 mb-1">GitHub Username / Owner Name *</label>
+                        <input type="text" id="gh-owner" oninput="saveCredentials()" placeholder="Jaise: ramesh-kisaan" class="w-full text-sm border border-stone-300 rounded-lg p-2.5 outline-none focus:ring-2 focus:ring-emerald-400">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-emerald-100 mb-1">Repository Name (Repo) *</label>
+                        <input type="text" id="gh-repo" oninput="saveCredentials()" placeholder="Jaise: krishi-hisaab-data" class="w-full text-sm border border-stone-300 rounded-lg p-2.5 outline-none focus:ring-2 focus:ring-emerald-400">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-emerald-100 mb-1">JSON File Path *</label>
+                        <input type="text" id="gh-path" value="hisaab.json" oninput="saveCredentials()" placeholder="Jaise: hisaab.json" class="w-full text-sm border border-stone-300 rounded-lg p-2.5 outline-none focus:ring-2 focus:ring-emerald-400">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-emerald-100 mb-1">GitHub Personal Access Token (PAT) *</label>
+                        <input type="password" id="gh-token" oninput="saveCredentials()" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx" class="w-full text-sm border border-stone-300 rounded-lg p-2.5 outline-none focus:ring-2 focus:ring-emerald-400">
+                    </div>
+                </div>
+
+                <div class="flex flex-col sm:flex-row gap-3 pt-2">
+                    <button id="btn-push-cloud" onclick="pushToGitHub()" class="flex-1 bg-emerald-500 hover:bg-emerald-600 text-stone-950 font-extrabold py-3 rounded-lg shadow-md transition-colors flex items-center justify-center gap-2">
+                        📤 Cloud Save (Upload to GitHub)
+                    </button>
+                    <button id="btn-pull-cloud" onclick="pullFromGitHub()" class="flex-1 bg-amber-400 hover:bg-amber-500 text-stone-950 font-extrabold py-3 rounded-lg shadow-md transition-colors flex items-center justify-center gap-2">
+                        📥 Cloud Restore (Fetch from GitHub)
+                    </button>
+                </div>
+                <p class="text-[10px] text-emerald-200 italic text-center">🔐 Cloud token GitHub standard APIs se directly sync hote hain aur encrypted system par work karte hain.</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="bg-white p-6 rounded-xl border border-stone-200 shadow-sm space-y-4">
+                    <div class="flex items-center gap-3">
+                        <span class="text-3xl">📤</span>
+                        <div>
+                            <h3 class="text-lg font-bold text-stone-800">1. Offline Backup Download Karein</h3>
+                            <p class="text-xs text-stone-500">Aapka sara records ek offline backup file me save ho jayega.</p>
+                        </div>
+                    </div>
+                    <p class="text-sm text-stone-600 bg-stone-50 p-3 rounded-lg">
+                        <strong>Kyun zaroori hai?</strong> Agar browser reset ho jaye, toh yeh .json file aapke mobile me safe backup ka kaam karegi.
+                    </p>
+                    <button onclick="downloadBackup()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 px-4 rounded-lg shadow transition-colors flex items-center justify-center gap-2">
+                        📥 Download Backup File (.json)
+                    </button>
+                </div>
+
+                <div class="bg-white p-6 rounded-xl border border-stone-200 shadow-sm space-y-4">
+                    <div class="flex items-center gap-3">
+                        <span class="text-3xl">📥</span>
+                        <div>
+                            <h3 class="text-lg font-bold text-stone-800">2. Offline File Wapas Load Karein</h3>
+                            <p class="text-xs text-stone-500">Apni offline backup file (.json) select karke restore karein.</p>
+                        </div>
+                    </div>
+                    <div class="border-2 border-dashed border-stone-300 rounded-lg p-4 text-center hover:bg-stone-50 transition-colors">
+                        <input type="file" id="import-file" accept=".json" class="hidden" onchange="uploadBackup(event)">
+                        <label for="import-file" class="cursor-pointer block space-y-2">
+                            <span class="text-2xl block">📂</span>
+                            <span class="text-sm font-semibold text-emerald-600 block">Backup File Chunnein</span>
+                            <span class="text-xs text-stone-400 block" id="file-chosen-text">Keval .json file select karein</span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <div id="add-modal" class="fixed inset-0 bg-stone-900 bg-opacity-50 z-50 flex items-center justify-center hidden p-4 no-print">
+        <div class="bg-white rounded-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto shadow-2xl transition-all border border-stone-200 flex flex-col">
+            <div class="px-6 py-4 bg-emerald-700 text-white flex justify-between items-center rounded-t-2xl">
+                <h3 id="modal-title" class="text-lg font-bold">Naya Record Jodein</h3>
+                <button onclick="closeModal()" class="text-white hover:text-stone-200 text-2xl font-bold focus:outline-none">&times;</button>
+            </div>
+            
+            <form id="modal-form" onsubmit="saveRecord(event)" class="p-6 space-y-4 flex-grow">
+                <input type="hidden" id="modal-type">
+                <input type="hidden" id="form-edit-id" value="">
+                
+                <div>
+                    <label class="block text-xs font-bold text-stone-700 mb-1">Tareekh (Date) *</label>
+                    <input type="date" id="form-date" required class="w-full text-sm border border-stone-300 rounded-lg p-2.5 focus:ring-2 focus:ring-emerald-500 outline-none">
+                </div>
+
+                <div>
+                    <label id="lbl-name" class="block text-xs font-bold text-stone-700 mb-1">Kisaan/Grahak ka Naam *</label>
+                    <input type="text" id="form-name" required placeholder="Naam likhein..." class="w-full text-sm border border-stone-300 rounded-lg p-2.5 focus:ring-2 focus:ring-emerald-500 outline-none">
+                </div>
+
+                <div id="jutai-fields" class="space-y-4 hidden">
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-bold text-stone-700 mb-1">Tractor Model/Driver</label>
+                            <input type="text" id="form-jutai-driver" placeholder="Sonalika / Ramu" class="w-full text-sm border border-stone-300 rounded-lg p-2.5 focus:ring-2 focus:ring-emerald-500 outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-stone-700 mb-1">Hisaab Ka Tarika</label>
+                            <select id="form-jutai-calc-type" onchange="calculateJutaiBill()" class="w-full text-sm border border-stone-300 rounded-lg p-2.5 focus:ring-2 focus:ring-emerald-500 outline-none">
+                                <option value="Bigha">प्रति बीघा (Per Bigha)</option>
+                                <option value="Acre">प्रति एकड़ (Per Acre)</option>
+                                <option value="Hour">प्रति घंटा (Per Hour)</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label id="lbl-jutai-qty" class="block text-xs font-bold text-stone-700 mb-1">Kul Bigha/Acre/Hour</label>
+                            <input type="number" step="0.01" id="form-jutai-qty" oninput="calculateJutaiBill()" placeholder="Qty" class="w-full text-sm border border-stone-300 rounded-lg p-2.5 focus:ring-2 focus:ring-emerald-500 outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-stone-700 mb-1">Rate (रुपये में)</label>
+                            <input type="number" step="0.1" id="form-jutai-rate" oninput="calculateJutaiBill()" placeholder="Rate" class="w-full text-sm border border-stone-300 rounded-lg p-2.5 focus:ring-2 focus:ring-emerald-500 outline-none">
+                        </div>
+                    </div>
+                </div>
+
+                <div id="chakki-fields" class="space-y-4 hidden">
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-bold text-stone-700 mb-1">Anaaj Ka Prakar *</label>
+                            <select id="form-chakki-grain" class="w-full text-sm border border-stone-300 rounded-lg p-2.5 focus:ring-2 focus:ring-emerald-500 outline-none">
+                                <option value="Gehun (गेहूं)">Gehun (गेहूं)</option>
+                                <option value="Bajra (बाजरा)">Bajra (बाजरा)</option>
+                                <option value="Makka (मक्का)">Makka (मक्का)</option>
+                                <option value="Chana (चना)">Chana (चना)</option>
+                                <option value="Mix (मिश्रित)">Mix (मिश्रित / Multi-grain)</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-stone-700 mb-1">Vajan (KG me) *</label>
+                            <input type="number" step="0.01" id="form-chakki-weight" oninput="calculateChakkiBill()" placeholder="Kg Vajan" class="w-full text-sm border border-stone-300 rounded-lg p-2.5 focus:ring-2 focus:ring-emerald-500 outline-none">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-stone-700 mb-1">Pisai Rate (Per KG) *</label>
+                        <input type="number" step="0.1" id="form-chakki-rate" oninput="calculateChakkiBill()" placeholder="Rate per KG" class="w-full text-sm border border-stone-300 rounded-lg p-2.5 focus:ring-2 focus:ring-emerald-500 outline-none">
+                    </div>
+                </div>
+
+                <div id="pani-fields" class="space-y-4 hidden">
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-bold text-stone-700 mb-1">Pani Source *</label>
+                            <select id="form-pani-source" class="w-full text-sm border border-stone-300 rounded-lg p-2.5 focus:ring-2 focus:ring-emerald-500 outline-none">
+                                <option value="Nalka / Tube-well">Apna Tube-well</option>
+                                <option value="Sarkari Canal">Sarkari Nahar</option>
+                                <option value="Rent Tube-well">Kiraya ka Boring</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-stone-700 mb-1">Kul Hours (घंटे) *</label>
+                            <input type="number" step="0.01" id="form-pani-hours" oninput="calculatePaniBill()" placeholder="Time in Hours" class="w-full text-sm border border-stone-300 rounded-lg p-2.5 focus:ring-2 focus:ring-emerald-500 outline-none">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-stone-700 mb-1">Rate per Hour *</label>
+                        <input type="number" step="0.1" id="form-pani-rate" oninput="calculatePaniBill()" placeholder="Rate" class="w-full text-sm border border-stone-300 rounded-lg p-2.5 focus:ring-2 focus:ring-emerald-500 outline-none">
+                    </div>
+                </div>
+
+                <div class="bg-stone-50 p-4 rounded-xl space-y-3 border border-stone-200">
+                    <div class="flex justify-between items-center text-sm">
+                        <span class="font-bold text-stone-600">Kul Baney Paise (Total Bill):</span>
+                        <strong class="text-stone-950 text-lg" id="form-total-bill">₹0.00</strong>
+                    </div>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-xs font-bold text-stone-600 mb-1">Abhi Diya (Paid Amount)</label>
+                            <input type="number" step="0.01" id="form-paid-amount" oninput="calculateDues()" placeholder="Diya gaya paisa" class="w-full text-sm border border-stone-300 rounded-lg p-2 outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-stone-600 mb-1">Baqaya Rashi (Due)</label>
+                            <input type="text" id="form-due-amount" readonly class="w-full text-sm bg-stone-100 text-rose-700 font-bold border border-stone-300 rounded-lg p-2 outline-none">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex justify-end gap-3 pt-3">
+                    <button type="button" onclick="closeModal()" class="px-4 py-2 text-stone-600 border border-stone-300 hover:bg-stone-100 rounded-lg text-sm font-semibold transition-colors">Radh Karein</button>
+                    <button id="form-submit-btn" type="submit" class="px-6 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-sm font-semibold transition-colors shadow-sm">Save (सुरक्षित करें)</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="receipt-modal" class="fixed inset-0 bg-stone-900 bg-opacity-50 z-50 flex items-center justify-center hidden p-4 no-print">
+        <div class="bg-white rounded-2xl max-w-md w-full shadow-2xl transition-all border border-stone-200 flex flex-col overflow-hidden">
+            <div class="px-6 py-4 bg-stone-800 text-white flex justify-between items-center">
+                <h3 class="text-sm font-bold uppercase tracking-wider">Hisaab Parchi (Bill Slip)</h3>
+                <button onclick="closeReceiptModal()" class="text-white hover:text-stone-300 text-2xl font-bold focus:outline-none">&times;</button>
+            </div>
+            
+            <div class="p-6 space-y-6 flex-grow" id="receipt-print-area">
+                <div class="border-2 border-stone-200 p-6 rounded-xl bg-amber-50/20 shadow-inner relative space-y-4">
+                    <div class="text-center pb-4 border-b border-dashed border-stone-300">
+                        <h4 class="text-lg font-bold text-stone-800">🚜 कृषक सेवा रसीद 🌾</h4>
+                        <p class="text-[10px] text-stone-500 font-mono">Bina Internet Digital Hisaab Ledger</p>
+                    </div>
+
+                    <div class="space-y-2 text-sm text-stone-700" id="receipt-details"></div>
+
+                    <div class="pt-4 border-t border-dashed border-stone-300 text-center text-xs text-stone-500 font-medium">
+                        Dhanyawad! Data Cloud aur Device dono me surakshit hai.
+                    </div>
+                </div>
+            </div>
+
+            <div class="px-6 py-4 bg-stone-50 border-t border-stone-200 flex flex-wrap gap-2 justify-end">
+                <button onclick="shareWhatsAppSingle()" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs px-3 py-2 rounded-lg font-bold transition-all flex items-center gap-1 shadow-sm">
+                    💬 WhatsApp Message
+                </button>
+                <button onclick="shareSMSSingle()" class="bg-blue-600 hover:bg-blue-700 text-white text-xs px-3 py-2 rounded-lg font-bold transition-all flex items-center gap-1 shadow-sm">
+                    📱 SMS Send
+                </button>
+                <button onclick="previewSinglePDF()" class="bg-stone-800 hover:bg-stone-900 text-white text-xs px-3 py-2 rounded-lg font-bold transition-all flex items-center gap-1 shadow-sm">
+                    📄 View PDF Preview
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="farmer-modal" class="fixed inset-0 bg-stone-900 bg-opacity-50 z-50 flex items-center justify-center hidden p-4 no-print">
+        <div class="bg-white rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden shadow-2xl transition-all border border-stone-200 flex flex-col">
+            <div class="px-6 py-4 bg-emerald-800 text-white flex justify-between items-center">
+                <h3 class="text-lg font-bold">👤 Kisan Ledger Khata Statement</h3>
+                <button onclick="closeFarmerModal()" class="text-white hover:text-stone-300 text-2xl font-bold focus:outline-none">&times;</button>
+            </div>
+            
+            <div class="p-6 overflow-y-auto flex-grow space-y-6">
+                <div id="farmer-print-area" class="space-y-6">
+                    <div class="border border-emerald-100 bg-emerald-50/50 p-6 rounded-2xl flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                        <div>
+                            <h4 class="text-2xl font-bold text-stone-900" id="farmer-profile-name">Ram Kumar</h4>
+                            <p class="text-xs text-stone-500">Is kisaan ke khet ki jutai, chakki aur pani ke sabhi records</p>
+                        </div>
+                        <div class="grid grid-cols-3 gap-6 bg-white p-4 rounded-xl shadow-inner border border-stone-200">
+                            <div class="text-center">
+                                <span class="text-[10px] uppercase font-bold text-stone-400">Total Bill</span>
+                                <span class="block text-lg font-bold text-stone-800" id="farmer-total-bill-sum">₹0.00</span>
+                            </div>
+                            <div class="text-center border-x border-stone-200 px-4">
+                                <span class="text-[10px] uppercase font-bold text-stone-400">Total Paid</span>
+                                <span class="block text-lg font-bold text-emerald-600" id="farmer-total-paid-sum">₹0.00</span>
+                            </div>
+                            <div class="text-center">
+                                <span class="text-[10px] uppercase font-bold text-stone-400">Net Due (बाकी)</span>
+                                <span class="block text-lg font-extrabold text-rose-600" id="farmer-total-due-sum">₹0.00</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="space-y-2">
+                        <h5 class="text-sm font-bold text-stone-700">Khate ki poori history (All Transactions):</h5>
+                        <div class="border border-stone-200 rounded-xl overflow-x-auto shadow-sm">
+                            <table class="min-w-full divide-y divide-stone-200">
+                                <thead class="bg-stone-50">
+                                    <tr>
+                                        <th class="px-4 py-2.5 text-left text-xs font-semibold text-stone-500 uppercase whitespace-nowrap">Tareekh</th>
+                                        <th class="px-4 py-2.5 text-left text-xs font-semibold text-stone-500 uppercase whitespace-nowrap">Kaam / Module</th>
+                                        <th class="px-4 py-2.5 text-left text-xs font-semibold text-stone-500 uppercase whitespace-nowrap">Kaam ka Vivran</th>
+                                        <th class="px-4 py-2.5 text-left text-xs font-semibold text-stone-500 uppercase whitespace-nowrap">Rate</th>
+                                        <th class="px-4 py-2.5 text-left text-xs font-semibold text-stone-500 uppercase whitespace-nowrap">Kul Bill</th>
+                                        <th class="px-4 py-2.5 text-left text-xs font-semibold text-stone-500 uppercase whitespace-nowrap">Jamapaise</th>
+                                        <th class="px-4 py-2.5 text-left text-xs font-semibold text-stone-500 uppercase whitespace-nowrap">Baqaya</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-stone-200 bg-white" id="farmer-ledger-tbody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-amber-50 p-4 rounded-xl border border-amber-200 space-y-3">
+                    <h5 class="text-sm font-bold text-amber-900 flex items-center gap-1.5">
+                        <span>🚀 Next Data entry:</span>
+                        <span class="text-xs font-normal text-amber-700">Isi kisaan ke naam par agla hisaab turant jodein</span>
+                    </h5>
+                    <div class="flex flex-wrap gap-2">
+                        <button onclick="addNextForFarmer('jutai')" class="bg-white hover:bg-stone-100 text-stone-800 border border-stone-300 text-xs px-3.5 py-2 rounded-lg font-bold flex items-center gap-1 shadow-sm">
+                            🚜 Nayi Jutai Jodein
+                        </button>
+                        <button onclick="addNextForFarmer('chakki')" class="bg-white hover:bg-stone-100 text-stone-800 border border-stone-300 text-xs px-3.5 py-2 rounded-lg font-bold flex items-center gap-1 shadow-sm">
+                            🌾 Nayi Pisai Jodein
+                        </button>
+                        <button onclick="addNextForFarmer('pani')" class="bg-white hover:bg-stone-100 text-stone-800 border border-stone-300 text-xs px-3.5 py-2 rounded-lg font-bold flex items-center gap-1 shadow-sm">
+                            💧 Naya Pani Jodein
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="px-6 py-4 bg-stone-50 border-t border-stone-200 flex flex-wrap gap-2 justify-end">
+                <button onclick="shareWhatsAppFarmer()" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs px-4 py-2.5 rounded-lg font-bold shadow transition-colors flex items-center gap-1.5">
+                    💬 Send Khata on WhatsApp
+                </button>
+                <button onclick="shareSMSFarmer()" class="bg-blue-600 hover:bg-blue-700 text-white text-xs px-4 py-2.5 rounded-lg font-bold shadow transition-colors flex items-center gap-1.5">
+                    📱 SMS Send Statement
+                </button>
+                <button onclick="previewFarmerPDF()" class="bg-stone-800 hover:bg-stone-950 text-white text-xs px-4 py-2.5 rounded-lg font-bold shadow transition-colors flex items-center gap-1.5">
+                    📄 View PDF Preview
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="pdf-preview-modal" class="fixed inset-0 bg-stone-900 bg-opacity-70 z-50 flex items-center justify-center hidden p-4 no-print">
+        <div class="bg-stone-100 rounded-2xl max-w-4xl w-full max-h-[95vh] shadow-2xl border border-stone-300 flex flex-col overflow-hidden">
+            <div class="px-6 py-4 bg-slate-800 text-white flex justify-between items-center">
+                <div class="flex items-center gap-2">
+                    <span class="text-xl">📄</span>
+                    <div>
+                        <h3 class="text-sm font-bold uppercase tracking-wider">PDF Print Preview (पीडीएफ समीक्षा)</h3>
+                        <p class="text-[10px] text-stone-300">Aapki file download hone se pehle aisi dikhegi</p>
+                    </div>
+                </div>
+                <button onclick="closePdfPreviewModal()" class="text-white hover:text-stone-300 text-2xl font-bold focus:outline-none">&times;</button>
+            </div>
+
+            <div class="p-6 overflow-y-auto flex-grow bg-stone-200">
+                <div class="max-w-[700px] mx-auto bg-white p-8 sm:p-12 shadow-xl border border-stone-300 rounded-md relative text-stone-800" id="pdf-mock-page">
+                    </div>
+            </div>
+
+            <div class="px-6 py-4 bg-white border-t border-stone-300 flex flex-wrap gap-2 justify-between items-center">
+                <button onclick="closePdfPreviewModal()" class="px-4 py-2 border border-stone-300 rounded-lg text-sm text-stone-600 hover:bg-stone-100 font-bold transition-all">
+                    &larr; Wapas Jayein
+                </button>
+                <div class="flex gap-2">
+                    <button onclick="triggerNativePrint()" class="bg-amber-500 hover:bg-amber-600 text-stone-950 px-4 py-2 rounded-lg text-sm font-bold transition-all shadow flex items-center gap-1.5">
+                        🖨️ Print / Save PDF Native
+                    </button>
+                    <button onclick="triggerDirectPdfDownload()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-2 rounded-lg text-sm font-bold transition-all shadow flex items-center gap-1.5">
+                        📥 Download PDF File
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="print-section" class="hidden"></div>
+
+    <div id="delete-modal" class="fixed inset-0 bg-stone-900 bg-opacity-60 z-50 flex items-center justify-center hidden p-4 no-print">
+        <div class="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl border border-stone-200 space-y-4 text-center">
+            <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-rose-100 text-rose-600 text-2xl font-bold">
+                ⚠️
+            </div>
+            <div>
+                <h3 class="text-lg font-bold text-stone-900">Record Delete Karein?</h3>
+                <p class="text-xs text-stone-500 mt-2">Kya aap sach mein is record ko hatana chahte hain? Is badlaav ko wapas nahi kiya ja sakega.</p>
+            </div>
+            <div class="flex gap-3">
+                <button onclick="closeDeleteModal()" class="flex-1 py-2 text-sm font-semibold text-stone-600 border border-stone-300 rounded-lg hover:bg-stone-50 transition-colors">Nahi (Cancel)</button>
+                <button id="btn-confirm-delete" onclick="executeDelete()" class="flex-1 py-2 text-sm font-semibold text-white bg-rose-600 rounded-lg hover:bg-rose-700 transition-colors shadow-sm">Haan, Hataein</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast-container" class="fixed bottom-5 right-5 z-50 space-y-2 pointer-events-none"></div>
+
+    <script>
+        // ================= ENVIRONMENT VARIABLES ENVIRONMENT CONFIG =================
+        const ENV_OWNER = "%%GH_OWNER%%";
+        const ENV_REPO = "%%GH_REPO%%";
+        const ENV_PATH = "%%GH_PATH%%";
+        const ENV_TOKEN = "%%GH_TOKEN%%";
+
+        function isEnvActive(val) {
+            return val && !val.startsWith('%%') && val.trim() !== '';
+        }
+
+        // Initialize state
+        let appState = {
+            jutai: [],
+            chakki: [],
+            pani: []
+        };
+
+        // Persistent Offline check & load
+        try {
+            const localData = localStorage.getItem('krishi_app_state');
+            if (localData) {
+                const parsed = JSON.parse(localData);
+                if (parsed.jutai && parsed.chakki && parsed.pani) {
+                    appState = parsed;
+                }
+            }
+        } catch (e) {
+            console.error("Local storage load failed", e);
+        }
+
+        let deleteInfo = { type: null, id: null };
+        let selectedReceipt = null;
+        let selectedFarmerName = "";
+        let currentPdfType = ""; // 'single' or 'farmer'
+
+        // Tab navigation engine
+        function openTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(section => {
+                section.classList.add('hidden');
+                section.classList.remove('block');
+            });
+            const activeTab = document.getElementById('tab-' + tabId);
+            activeTab.classList.remove('hidden');
+            activeTab.classList.add('block');
+
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.className = "tab-btn px-4 py-2.5 rounded-lg text-sm font-semibold transition-all duration-200 text-stone-600 hover:bg-stone-50 whitespace-nowrap";
+            });
+            const activeBtn = document.getElementById('btn-' + tabId);
+            if(activeBtn) {
+                activeBtn.className = "tab-btn px-4 py-2.5 rounded-lg text-sm font-semibold transition-all duration-200 whitespace-nowrap bg-emerald-50 text-emerald-700 border-b-2 border-emerald-600";
+            }
+
+            updateDashboard();
+            renderTables();
+        }
+
+        // Custom toast alert
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = `p-4 rounded-xl text-white font-semibold text-sm shadow-lg transform translate-y-2 transition-all duration-300 ease-out pointer-events-auto flex items-center gap-2 ${
+                type === 'success' ? 'bg-emerald-600' : 'bg-rose-600'
+            }`;
+            toast.innerHTML = `<span>${type === 'success' ? '✅' : '⚠️'}</span><span>${message}</span>`;
+            container.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.classList.remove('translate-y-2');
+                toast.classList.add('translate-y-0');
+            }, 10);
+
+            setTimeout(() => {
+                toast.classList.add('opacity-0');
+                setTimeout(() => { toast.remove(); }, 300);
+            }, 3000);
+        }
+
+        // Save State & auto trigger online backups
+        function persistStateAndSync() {
+            try {
+                localStorage.setItem('krishi_app_state', JSON.stringify(appState));
+                updateStatusBadge('offline', 'Local Saved');
+            } catch (e) {
+                console.error("Local save failed", e);
+                updateStatusBadge('error', 'Local Save Error');
+            }
+            updateDashboard();
+            renderTables();
+            triggerAutoSync();
+        }
+
+        // Live visual indicator updates
+        function updateStatusBadge(status, text) {
+            const dot = document.getElementById('sync-status-dot');
+            const statusText = document.getElementById('sync-status-text');
+            const badge = document.getElementById('sync-status-badge');
+
+            statusText.innerText = text;
+
+            if (status === 'syncing') {
+                dot.className = "w-2.5 h-2.5 rounded-full bg-amber-400 animate-pulse";
+                badge.className = "bg-amber-900 text-amber-200 text-xs px-3 py-1.5 rounded-full font-semibold flex items-center gap-1.5 border border-amber-600";
+            } else if (status === 'success') {
+                dot.className = "w-2.5 h-2.5 rounded-full bg-emerald-400";
+                badge.className = "bg-emerald-800 text-emerald-200 text-xs px-3 py-1.5 rounded-full font-semibold flex items-center gap-1.5 border border-emerald-600 animate-bounce";
+                setTimeout(() => badge.classList.remove('animate-bounce'), 1000);
+            } else if (status === 'error') {
+                dot.className = "w-2.5 h-2.5 rounded-full bg-rose-500 animate-ping";
+                badge.className = "bg-rose-900 text-rose-200 text-xs px-3 py-1.5 rounded-full font-semibold flex items-center gap-1.5 border border-rose-600";
+            } else {
+                dot.className = "w-2.5 h-2.5 rounded-full bg-emerald-400";
+                badge.className = "bg-emerald-800 text-emerald-200 text-xs px-3 py-1.5 rounded-full font-semibold flex items-center gap-1.5 border border-emerald-600";
+            }
+        }
+
+        // Save Credentials to local memory
+        function saveCredentials() {
+            if (isEnvActive(ENV_TOKEN)) return; 
+            localStorage.setItem('gh_owner', document.getElementById('gh-owner').value.trim());
+            localStorage.setItem('gh_repo', document.getElementById('gh-repo').value.trim());
+            localStorage.setItem('gh_path', document.getElementById('gh-path').value.trim());
+            localStorage.setItem('gh_token', document.getElementById('gh-token').value.trim());
+            localStorage.setItem('gh_auto_sync', document.getElementById('gh-auto-sync').checked);
+        }
+
+        // Load Saved configuration from Environment / Local Storage
+        function loadCredentials() {
+            const hasEnv = isEnvActive(ENV_TOKEN);
+            
+            document.getElementById('gh-owner').value = hasEnv ? ENV_OWNER : (localStorage.getItem('gh_owner') || '');
+            document.getElementById('gh-repo').value = hasEnv ? ENV_REPO : (localStorage.getItem('gh_repo') || '');
+            document.getElementById('gh-path').value = hasEnv ? ENV_PATH : (localStorage.getItem('gh_path') || 'hisaab.json');
+            document.getElementById('gh-token').value = hasEnv ? '••••••••••••••••' : (localStorage.getItem('gh_token') || '');
+            
+            const autoSync = localStorage.getItem('gh_auto_sync');
+            document.getElementById('gh-auto-sync').checked = autoSync === null ? true : (autoSync === 'true');
+
+            if (hasEnv) {
+                document.getElementById('gh-owner').disabled = true;
+                document.getElementById('gh-repo').disabled = true;
+                document.getElementById('gh-path').disabled = true;
+                document.getElementById('gh-token').disabled = true;
+                document.getElementById('env-indicator-msg').innerHTML = "🔒 <strong>Secure Cloud Mode Active:</strong> GitHub Secrets loaded from secure build script!";
+            } else {
+                document.getElementById('env-indicator-msg').innerHTML = "🔑 <strong>Manual Settings Mode:</strong> Personal GitHub details fill karke auto upload chalu karein.";
+            }
+        }
+
+        // Background automatic data uploader to GitHub (Unicode Safe UTF-8 Base64 Encodings)
+        async function triggerAutoSync() {
+            const autoChecked = document.getElementById('gh-auto-sync').checked;
+            if (!autoChecked) return;
+
+            const owner = isEnvActive(ENV_OWNER) ? ENV_OWNER : document.getElementById('gh-owner').value.trim();
+            const repo = isEnvActive(ENV_REPO) ? ENV_REPO : document.getElementById('gh-repo').value.trim();
+            const path = isEnvActive(ENV_PATH) ? ENV_PATH : document.getElementById('gh-path').value.trim();
+            const token = isEnvActive(ENV_TOKEN) ? ENV_TOKEN : document.getElementById('gh-token').value.trim();
+
+            if (!owner || !repo || !path || !token) return;
+
+            updateStatusBadge('syncing', 'Syncing Cloud...');
+            const url = `https://api.github.com/repos/${owner}/${repo}/contents/${path}`;
+            const branch = "main";
+
+            let sha = null;
+            try {
+                const getRes = await fetch(url + `?ref=${branch}`, {
+                    headers: { 'Authorization': `token ${token}` }
+                });
+                if (getRes.ok) {
+                    const getData = await getRes.json();
+                    sha = getData.sha;
+                }
+            } catch (e) {}
+
+            try {
+                const jsonString = JSON.stringify(appState, null, 2);
+                const bytes = new TextEncoder().encode(jsonString);
+                const contentBase64 = btoa(String.fromCharCode(...bytes));
+
+                const bodyData = {
+                    message: "Krishi Hisaab Auto-Sync: " + new Date().toLocaleString(),
+                    content: contentBase64,
+                    branch: branch
+                };
+                if (sha) bodyData.sha = sha;
+
+                const putRes = await fetch(url, {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `token ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(bodyData)
+                });
+
+                if (putRes.ok) {
+                    updateStatusBadge('success', 'Cloud Synced');
+                } else {
+                    updateStatusBadge('error', 'Cloud Sync Error');
+                }
+            } catch (err) {
+                updateStatusBadge('error', 'Cloud Sync Error');
+            }
+        }
+
+        // Calculations Engine
+        function calculateJutaiBill() {
+            const qty = parseFloat(document.getElementById('form-jutai-qty').value) || 0;
+            const rate = parseFloat(document.getElementById('form-jutai-rate').value) || 0;
+            const total = qty * rate;
+            document.getElementById('form-total-bill').innerText = `₹${total.toFixed(2)}`;
+            calculateDues();
+        }
+
+        function calculateChakkiBill() {
+            const weight = parseFloat(document.getElementById('form-chakki-weight').value) || 0;
+            const rate = parseFloat(document.getElementById('form-chakki-rate').value) || 0;
+            const total = weight * rate;
+            document.getElementById('form-total-bill').innerText = `₹${total.toFixed(2)}`;
+            calculateDues();
+        }
+
+        function calculatePaniBill() {
+            const hours = parseFloat(document.getElementById('form-pani-hours').value) || 0;
+            const rate = parseFloat(document.getElementById('form-pani-rate').value) || 0;
+            const total = hours * rate;
+            document.getElementById('form-total-bill').innerText = `₹${total.toFixed(2)}`;
+            calculateDues();
+        }
+
+        function calculateDues() {
+            const totalBillText = document.getElementById('form-total-bill').innerText;
+            const total = parseFloat(totalBillText.replace('₹', '')) || 0;
+            const paid = parseFloat(document.getElementById('form-paid-amount').value) || 0;
+            const due = total - paid;
+            document.getElementById('form-due-amount').value = `₹${due.toFixed(2)}`;
+        }
+
+        // Modal Control Triggers (Fixes Hidden Required Validation Locks)
+        function openAddModal(type) {
+            document.getElementById('add-modal').classList.remove('hidden');
+            document.getElementById('modal-type').value = type;
+            document.getElementById('form-edit-id').value = ""; 
+            document.getElementById('modal-form').reset();
+            document.getElementById('form-total-bill').innerText = '₹0.00';
+            document.getElementById('form-date').value = new Date().toISOString().substring(0, 10);
+            document.getElementById('form-submit-btn').innerText = "Save (सुरक्षित करें)";
+
+            // Reset all validation locks first
+            const fields = ['form-jutai-qty', 'form-jutai-rate', 'form-chakki-weight', 'form-chakki-rate', 'form-pani-hours', 'form-pani-rate'];
+            fields.forEach(fId => document.getElementById(fId).required = false);
+
+            document.getElementById('jutai-fields').classList.add('hidden');
+            document.getElementById('chakki-fields').classList.add('hidden');
+            document.getElementById('pani-fields').classList.add('hidden');
+
+            if (type === 'jutai') {
+                document.getElementById('modal-title').innerText = "🚜 Naya Jutai Record Jodein";
+                document.getElementById('lbl-name').innerText = "Kisaan ka Naam *";
+                document.getElementById('jutai-fields').classList.remove('hidden');
+                document.getElementById('form-jutai-qty').required = true;
+                document.getElementById('form-jutai-rate').required = true;
+            } else if (type === 'chakki') {
+                document.getElementById('modal-title').innerText = "🌾 Naya Chakki Pisai Record Jodein";
+                document.getElementById('lbl-name').innerText = "Grahak ka Naam *";
+                document.getElementById('chakki-fields').classList.remove('hidden');
+                document.getElementById('form-chakki-weight').required = true;
+                document.getElementById('form-chakki-rate').required = true;
+            } else if (type === 'pani') {
+                document.getElementById('modal-title').innerText = "💧 Naya Sinchai/Pani Record Jodein";
+                document.getElementById('lbl-name').innerText = "Khet Owner ka Naam *";
+                document.getElementById('pani-fields').classList.remove('hidden');
+                document.getElementById('form-pani-hours').required = true;
+                document.getElementById('form-pani-rate').required = true;
+            }
+        }
+
+        function openEditModal(type, id, event) {
+            if(event) event.stopPropagation();
+            const record = appState[type].find(r => r.id === id);
+            if (!record) return;
+
+            openAddModal(type);
+            document.getElementById('form-edit-id').value = id;
+            document.getElementById('modal-title').innerText = "✏️ Record Badlein (Edit Record)";
+            document.getElementById('form-submit-btn').innerText = "Update (सुरक्षित करें)";
+            
+            document.getElementById('form-date').value = record.date;
+            document.getElementById('form-name').value = record.name;
+            document.getElementById('form-paid-amount').value = record.paid;
+
+            if (type === 'jutai') {
+                document.getElementById('form-jutai-driver').value = record.driver;
+                document.getElementById('form-jutai-calc-type').value = record.calcType;
+                document.getElementById('form-jutai-qty').value = record.qty;
+                document.getElementById('form-jutai-rate').value = record.rate;
+                calculateJutaiBill();
+            } else if (type === 'chakki') {
+                document.getElementById('form-chakki-grain').value = record.grain;
+                document.getElementById('form-chakki-weight').value = record.weight;
+                document.getElementById('form-chakki-rate').value = record.rate;
+                calculateChakkiBill();
+            } else if (type === 'pani') {
+                document.getElementById('form-pani-source').value = record.source;
+                document.getElementById('form-pani-hours').value = record.hours;
+                document.getElementById('form-pani-rate').value = record.rate;
+                calculatePaniBill();
+            }
+        }
+
+        function closeModal() {
+            document.getElementById('add-modal').classList.add('hidden');
+        }
+
+        function saveRecord(e) {
+            e.preventDefault();
+            const type = document.getElementById('modal-type').value;
+            const editId = document.getElementById('form-edit-id').value;
+            const date = document.getElementById('form-date').value;
+            const name = document.getElementById('form-name').value.trim();
+            const paid = parseFloat(document.getElementById('form-paid-amount').value) || 0;
+            
+            let record = { date: date, name: name, paid: paid };
+
+            if (type === 'jutai') {
+                const qty = parseFloat(document.getElementById('form-jutai-qty').value) || 0;
+                const rate = parseFloat(document.getElementById('form-jutai-rate').value) || 0;
+                record.driver = document.getElementById('form-jutai-driver').value || 'Unknown';
+                record.calcType = document.getElementById('form-jutai-calc-type').value;
+                record.qty = qty; record.rate = rate; record.total = qty * rate; record.due = record.total - paid;
+            } else if (type === 'chakki') {
+                const weight = parseFloat(document.getElementById('form-chakki-weight').value) || 0;
+                const rate = parseFloat(document.getElementById('form-chakki-rate').value) || 0;
+                record.grain = document.getElementById('form-chakki-grain').value;
+                record.weight = weight; record.rate = rate; record.total = weight * rate; record.due = record.total - paid;
+            } else if (type === 'pani') {
+                const hours = parseFloat(document.getElementById('form-pani-hours').value) || 0;
+                const rate = parseFloat(document.getElementById('form-pani-rate').value) || 0;
+                record.source = document.getElementById('form-pani-source').value;
+                record.hours = hours; record.rate = rate; record.total = hours * rate; record.due = record.total - paid;
+            }
+
+            if (editId) {
+                record.id = editId;
+                const idx = appState[type].findIndex(item => item.id === editId);
+                if (idx !== -1) appState[type][idx] = record;
+                showToast('Hisaab successfully update kar diya hai!');
+            } else {
+                record.id = type + Date.now();
+                appState[type].push(record);
+                showToast('Hisaab safaltapoorvak safe kar liya gaya hai!');
+            }
+
+            closeModal();
+            persistStateAndSync();
+        }
+
+        function triggerDeleteConfirm(type, id, event) {
+            if(event) event.stopPropagation();
+            deleteInfo.type = type;
+            deleteInfo.id = id;
+            document.getElementById('delete-modal').classList.remove('hidden');
+        }
+
+        function closeDeleteModal() {
+            document.getElementById('delete-modal').classList.add('hidden');
+        }
+
+        function executeDelete() {
+            const { type, id } = deleteInfo;
+            if (type && id) {
+                appState[type] = appState[type].filter(item => item.id !== id);
+                showToast('Record hataya gaya!', 'error');
+                persistStateAndSync();
+                if (!document.getElementById('farmer-modal').classList.contains('hidden')) {
+                    openFarmerLedger(selectedFarmerName);
+                }
+            }
+            closeDeleteModal();
+        }
+
+        function openReceipt(type, id) {
+            const item = appState[type].find(record => record.id === id);
+            if (!item) return;
+
+            selectedReceipt = { ...item, type: type };
+            const container = document.getElementById('receipt-details');
+            
+            let specificsHTML = "";
+            if (type === 'jutai') {
+                specificsHTML = `
+                    <div class="flex justify-between"><span>📋 Seva Prakar:</span> <strong>🚜 Khet Jutai (Ploughing)</strong></div>
+                    <div class="flex justify-between"><span>🚜 Tractor Model:</span> <strong>${item.driver || 'N/A'}</strong></div>
+                    <div class="flex justify-between"><span>📏 Calculation:</span> <strong>${item.qty} ${item.calcType} (@ ₹${item.rate})</strong></div>
+                `;
+            } else if (type === 'chakki') {
+                specificsHTML = `
+                    <div class="flex justify-between"><span>📋 Seva Prakar:</span> <strong>🌾 Aata-Dana Pisai (Flour Mill)</strong></div>
+                    <div class="flex justify-between"><span>🌾 Grain Type:</span> <strong>${item.grain}</strong></div>
+                    <div class="flex justify-between"><span>⚖️ Total Weight:</span> <strong>${item.weight} KG (@ ₹${item.rate}/KG)</strong></div>
+                `;
+            } else if (type === 'pani') {
+                specificsHTML = `
+                    <div class="flex justify-between"><span>📋 Seva Prakar:</span> <strong>💧 Irrigation (Sinchai)</strong></div>
+                    <div class="flex justify-between"><span>💧 Water Source:</span> <strong>${item.source}</strong></div>
+                    <div class="flex justify-between"><span>⏰ Time:</span> <strong>${item.hours} Hrs (@ ₹${item.rate}/Hr)</strong></div>
+                `;
+            }
+
+            container.innerHTML = `
+                <div class="flex justify-between"><span>📄 Receipt ID:</span> <strong class="font-mono">${item.id}</strong></div>
+                <div class="flex justify-between"><span>📅 Tareekh:</span> <strong>${formatDate(item.date)}</strong></div>
+                <div class="flex justify-between border-b border-stone-200 pb-2"><span>👤 Kisan/Customer:</span> <strong>${item.name}</strong></div>
+                ${specificsHTML}
+                <div class="border-t border-stone-200 pt-2 flex justify-between text-base font-extrabold text-stone-900">
+                    <span>💵 Total Bill:</span> <span>₹${item.total.toFixed(2)}</span>
+                </div>
+                <div class="flex justify-between text-sm text-emerald-700 font-bold">
+                    <span>✅ Total Paid (जमा):</span> <span>₹${item.paid.toFixed(2)}</span>
+                </div>
+                <div class="flex justify-between text-sm text-rose-600 font-bold border-t border-stone-200 pt-1">
+                    <span>⚠️ Due Baqaya (बाकी):</span> <span>₹${item.due.toFixed(2)}</span>
+                </div>
+            `;
+            document.getElementById('receipt-modal').classList.remove('hidden');
+        }
+
+        function closeReceiptModal() {
+            document.getElementById('receipt-modal').classList.add('hidden');
+        }
+
+        function openFarmerLedger(name) {
+            selectedFarmerName = name;
+            document.getElementById('farmer-profile-name').innerText = name;
+            const tableBody = document.getElementById('farmer-ledger-tbody');
+            tableBody.innerHTML = '';
+
+            let totalBillSum = 0, totalPaidSum = 0, totalDueSum = 0;
+            const collectAndRender = (type, list) => {
+                list.forEach(item => {
+                    if (item.name.toLowerCase() === name.toLowerCase()) {
+                        totalBillSum += item.total; totalPaidSum += item.paid; totalDueSum += item.due;
+                        let category = type === 'jutai' ? "🚜 Tractor Jutai" : type === 'chakki' ? "🌾 Chakki Pisai" : "💧 Sinchai";
+                        let description = type === 'jutai' ? `${item.qty} ${item.calcType}` : type === 'chakki' ? `${item.weight} KG` : `${item.hours} Hrs`;
+
+                        const tr = document.createElement('tr');
+                        tr.className = "hover:bg-stone-50 text-xs";
+                        tr.innerHTML = `
+                            <td class="px-4 py-2.5 whitespace-nowrap text-stone-500">${formatDate(item.date)}</td>
+                            <td class="px-4 py-2.5 whitespace-nowrap font-bold text-emerald-800">${category}</td>
+                            <td class="px-4 py-2.5 whitespace-nowrap text-stone-600">${description}</td>
+                            <td class="px-4 py-2.5 whitespace-nowrap text-stone-500">₹${item.rate}</td>
+                            <td class="px-4 py-2.5 whitespace-nowrap font-bold text-stone-800">₹${item.total.toFixed(2)}</td>
+                            <td class="px-4 py-2.5 whitespace-nowrap text-emerald-600 font-semibold">₹${item.paid.toFixed(2)}</td>
+                            <td class="px-4 py-2.5 whitespace-nowrap font-bold text-rose-600">₹${item.due.toFixed(2)}</td>
+                        `;
+                        tableBody.appendChild(tr);
+                    }
+                });
+            };
+
+            collectAndRender('jutai', appState.jutai);
+            collectAndRender('chakki', appState.chakki);
+            collectAndRender('pani', appState.pani);
+
+            document.getElementById('farmer-total-bill-sum').innerText = `₹${totalBillSum.toFixed(2)}`;
+            document.getElementById('farmer-total-paid-sum').innerText = `₹${totalPaidSum.toFixed(2)}`;
+            document.getElementById('farmer-total-due-sum').innerText = `₹${totalDueSum.toFixed(2)}`;
+            document.getElementById('farmer-modal').classList.remove('hidden');
+        }
+
+        function addNextForFarmer(type) {
+            closeFarmerModal();
+            openAddModal(type);
+            document.getElementById('form-name').value = selectedFarmerName;
+        }
+
+        function closeFarmerModal() {
+            document.getElementById('farmer-modal').classList.add('hidden');
+        }
+
+        function renderTables() {
+            // Jutai Table
+            const listJutai = document.getElementById('list-jutai');
+            listJutai.innerHTML = '';
+            appState.jutai.forEach(item => {
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-amber-50/50 cursor-pointer transition-colors";
+                tr.onclick = () => openReceipt('jutai', item.id);
+                tr.innerHTML = `
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-stone-500 font-medium">${formatDate(item.date)}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-emerald-700 font-bold hover:underline" onclick="event.stopPropagation(); openFarmerLedger('${item.name}')">${item.name}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-xs"><span class="bg-amber-100 text-amber-800 px-2.5 py-1 rounded-full font-bold">${item.calcType} basis</span></td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-stone-600">${item.qty} Qty @ ₹${item.rate}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-stone-900 font-bold">₹${item.total.toFixed(2)}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-emerald-600 font-semibold">₹${item.paid.toFixed(2)}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm ${item.due > 0 ? 'text-rose-600 font-bold' : 'text-stone-500'}">₹${item.due.toFixed(2)}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-center text-sm space-x-2" onclick="event.stopPropagation();">
+                        <button onclick="openEditModal('jutai', '${item.id}')" class="text-emerald-600 hover:text-emerald-900 font-semibold">✏️ Badlein</button>
+                        <button onclick="triggerDeleteConfirm('jutai', '${item.id}')" class="text-rose-600 hover:text-rose-900 font-semibold">🗑️ Hataein</button>
+                    </td>
+                `;
+                listJutai.appendChild(tr);
+            });
+            document.getElementById('no-data-jutai').classList.toggle('hidden', appState.jutai.length > 0);
+
+            // Chakki Table
+            const listChakki = document.getElementById('list-chakki');
+            listChakki.innerHTML = '';
+            appState.chakki.forEach(item => {
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-amber-50/50 cursor-pointer transition-colors";
+                tr.onclick = () => openReceipt('chakki', item.id);
+                tr.innerHTML = `
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-stone-500 font-medium">${formatDate(item.date)}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-emerald-700 font-bold hover:underline" onclick="event.stopPropagation(); openFarmerLedger('${item.name}')">${item.name}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-stone-700 font-bold">${item.grain}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-stone-600">${item.weight} KG</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-stone-500">₹${item.rate}/KG</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-stone-900 font-bold">₹${item.total.toFixed(2)}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-emerald-600 font-semibold">₹${item.paid.toFixed(2)}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm ${item.due > 0 ? 'text-rose-600 font-bold' : 'text-stone-500'}">₹${item.due.toFixed(2)}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-center text-sm space-x-2" onclick="event.stopPropagation();">
+                        <button onclick="openEditModal('chakki', '${item.id}')" class="text-emerald-600 hover:text-emerald-900 font-semibold">✏️ Badlein</button>
+                        <button onclick="triggerDeleteConfirm('chakki', '${item.id}')" class="text-rose-600 hover:text-rose-900 font-semibold">🗑️ Hataein</button>
+                    </td>
+                `;
+                listChakki.appendChild(tr);
+            });
+            document.getElementById('no-data-chakki').classList.toggle('hidden', appState.chakki.length > 0);
+
+            // Pani Table
+            const listPani = document.getElementById('list-pani');
+            listPani.innerHTML = '';
+            appState.pani.forEach(item => {
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-amber-50/50 cursor-pointer transition-colors";
+                tr.onclick = () => openReceipt('pani', item.id);
+                tr.innerHTML = `
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-stone-500 font-medium">${formatDate(item.date)}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-emerald-700 font-bold hover:underline" onclick="event.stopPropagation(); openFarmerLedger('${item.name}')">${item.name}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-xs text-stone-600">${item.source}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-stone-600">${item.hours} Hrs</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-stone-500">₹${item.rate}/Hr</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-stone-900 font-bold">₹${item.total.toFixed(2)}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-emerald-600 font-semibold">₹${item.paid.toFixed(2)}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm ${item.due > 0 ? 'text-rose-600 font-bold' : 'text-stone-500'}">₹${item.due.toFixed(2)}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-center text-sm space-x-2" onclick="event.stopPropagation();">
+                        <button onclick="openEditModal('pani', '${item.id}')" class="text-emerald-600 hover:text-emerald-900 font-semibold">✏️ Badlein</button>
+                        <button onclick="triggerDeleteConfirm('pani', '${item.id}')" class="text-rose-600 hover:text-rose-900 font-semibold">🗑️ Hataein</button>
+                    </td>
+                `;
+                listPani.appendChild(tr);
+            });
+            document.getElementById('no-data-pani').classList.toggle('hidden', appState.pani.length > 0);
+        }
+
+        function formatDate(dStr) {
+            if (!dStr) return '';
+            const d = new Date(dStr);
+            return d.toLocaleDateString('hi-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+        }
+
+        function filterTable(type) {
+            const query = document.getElementById('search-' + type).value.toLowerCase();
+            const rows = document.querySelectorAll(`#list-${type} tr`);
+            let hasVisible = false;
+
+            rows.forEach(row => {
+                const nameText = row.cells[1].innerText.toLowerCase();
+                if (nameText.includes(query)) {
+                    row.classList.remove('hidden');
+                    hasVisible = true;
+                } else {
+                    row.classList.add('hidden');
+                }
+            });
+            document.getElementById(`no-data-${type}`).classList.toggle('hidden', hasVisible);
+        }
+
+        function updateDashboard() {
+            let jutaiTotal = 0, jutaiPaid = 0, jutaiDue = 0;
+            appState.jutai.forEach(item => { jutaiTotal += item.total; jutaiPaid += item.paid; jutaiDue += item.due; });
+            document.getElementById('dash-jutai-total').innerText = `₹${jutaiTotal.toFixed(2)}`;
+            document.getElementById('dash-jutai-paid').innerText = `₹${jutaiPaid.toFixed(2)}`;
+            document.getElementById('dash-jutai-due').innerText = `₹${jutaiDue.toFixed(2)}`;
+
+            let chakkiTotalWeight = 0, chakkiTotalPisai = 0, chakkiDue = 0;
+            appState.chakki.forEach(item => { chakkiTotalWeight += item.weight; chakkiTotalPisai += item.total; chakkiDue += item.due; });
+            document.getElementById('dash-chakki-wt').innerText = `${chakkiTotalWeight.toFixed(1)} KG`;
+            document.getElementById('dash-chakki-total').innerText = `₹${chakkiTotalPisai.toFixed(2)}`;
+            document.getElementById('dash-chakki-due').innerText = `₹${chakkiDue.toFixed(2)}`;
+
+            let paniTotalHours = 0, paniTotalBill = 0, paniDue = 0;
+            appState.pani.forEach(item => { paniTotalHours += item.hours; paniTotalBill += item.total; paniDue += item.due; });
+            document.getElementById('dash-pani-hours').innerText = `${paniTotalHours.toFixed(1)} Hrs`;
+            document.getElementById('dash-pani-total').innerText = `₹${paniTotalBill.toFixed(2)}`;
+            document.getElementById('dash-pani-due').innerText = `₹${paniDue.toFixed(2)}`;
+
+            const overallDue = jutaiDue + chakkiDue + paniDue;
+            document.getElementById('dash-overall-due').innerText = `₹${overallDue.toFixed(2)}`;
+
+            const farmerMap = {};
+            const gatherFarmers = (list) => {
+                list.forEach(item => {
+                    const name = item.name;
+                    if(!farmerMap[name]) farmerMap[name] = { due: 0, count: 0 };
+                    farmerMap[name].due += item.due; farmerMap[name].count += 1;
+                });
+            };
+            gatherFarmers(appState.jutai); gatherFarmers(appState.chakki); gatherFarmers(appState.pani);
+
+            const gridContainer = document.getElementById('dash-farmer-grid');
+            gridContainer.innerHTML = '';
+            
+            Object.keys(farmerMap).forEach(name => {
+                const info = farmerMap[name];
+                const card = document.createElement('div');
+                card.className = "bg-stone-50 hover:bg-emerald-50 border border-stone-200 hover:border-emerald-300 p-4 rounded-xl cursor-pointer transition-all flex flex-col justify-between";
+                card.onclick = () => openFarmerLedger(name);
+                card.innerHTML = `
+                    <div>
+                        <h4 class="font-bold text-stone-900 text-sm">${name}</h4>
+                        <p class="text-[10px] text-stone-400 font-mono">${info.count} entries</p>
+                    </div>
+                    <div class="mt-3 flex justify-between items-center border-t border-stone-200/50 pt-2">
+                        <span class="text-[10px] text-stone-500 font-bold">Baqaya:</span>
+                        <span class="text-xs font-black ${info.due > 0 ? 'text-rose-600' : 'text-stone-500'}">₹${info.due.toFixed(2)}</span>
+                    </div>
+                `;
+                gridContainer.appendChild(card);
+            });
+
+            const bulkTableBody = document.getElementById('bulk-debtors-list');
+            bulkTableBody.innerHTML = '';
+            const debtors = Object.keys(farmerMap).map(name => ({ name, due: farmerMap[name].due })).filter(f => f.due > 0);
+
+            if (debtors.length === 0) {
+                document.getElementById('no-debtors-msg').classList.remove('hidden');
+            } else {
+                document.getElementById('no-debtors-msg').classList.add('hidden');
+                debtors.forEach((debtor, index) => {
+                    const tr = document.createElement('tr');
+                    tr.className = "hover:bg-amber-50/30 transition-colors";
+                    tr.innerHTML = `
+                        <td class="px-4 py-3">
+                            <input type="checkbox" id="chk-debtor-${index}" data-name="${debtor.name}" data-due="${debtor.due}" checked class="w-4 h-4 text-emerald-600 rounded">
+                        </td>
+                        <td class="px-4 py-3 font-semibold text-stone-800">${debtor.name}</td>
+                        <td class="px-4 py-3 text-rose-600 font-bold">₹${debtor.due.toFixed(2)}</td>
+                        <td class="px-4 py-3 text-center space-x-1">
+                            <button onclick="sendQuickDebtorReminder('${debtor.name}', ${debtor.due}, 'whatsapp')" class="bg-emerald-50 hover:bg-emerald-100 text-emerald-700 text-xs px-2.5 py-1.5 rounded-lg font-bold">💬 WA</button>
+                            <button onclick="sendQuickDebtorReminder('${debtor.name}', ${debtor.due}, 'sms')" class="bg-blue-50 hover:bg-blue-100 text-blue-700 text-xs px-2.5 py-1.5 rounded-lg font-bold">📱 SMS</button>
+                        </td>
+                    `;
+                    bulkTableBody.appendChild(tr);
+                });
+            }
+        }
+
+        function getConsolidatedDebtorsText() {
+            const checkboxes = document.querySelectorAll('[id^="chk-debtor-"]');
+            let text = `📢 *कृषि हिसाब-किताब - बकाया भुगतान सूचना* 📢\n\n`;
+            text += `Sabhi kisaan bhaiyon se nivedan hai ki apna baqaya hisaab clear karein:\n\n`;
+            let totalCombinedDue = 0, activeCount = 0;
+            
+            checkboxes.forEach(chk => {
+                if(chk.checked) {
+                    const name = chk.getAttribute('data-name');
+                    const due = parseFloat(chk.getAttribute('data-due')) || 0;
+                    text += `👤 *${name}:* ₹${due.toFixed(2)}\n`;
+                    totalCombinedDue += due; activeCount++;
+                }
+            });
+            if(activeCount === 0) return "";
+            text += `\n💵 *Total Outstanding Due:* ₹${totalCombinedDue.toFixed(2)}\n\nKripya jald bhugtan karein. 🙏`;
+            return text;
+        }
+
+        function copyBulkConsolidatedMessage() {
+            const text = getConsolidatedDebtorsText();
+            if(!text) { showToast('Kripya kam se kam ek kisaan select karein!', 'error'); return; }
+            const tempTextArea = document.createElement("textarea");
+            tempTextArea.value = text; document.body.appendChild(tempTextArea); tempTextArea.select();
+            try {
+                document.execCommand('copy');
+                showToast('Text clipboard par copy ho gaya!');
+            } catch (err) { showToast('Copy nahi ho paya.', 'error'); }
+            document.body.removeChild(tempTextArea);
+        }
+
+        function shareBulkWhatsApp() {
+            const text = getConsolidatedDebtorsText();
+            if(!text) { showToast('Kripya kam se kam ek kisaan select karein!', 'error'); return; }
+            window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
+        }
+
+        function sendQuickDebtorReminder(name, due, mode) {
+            const text = `Krishi Hisaab: Namaskar ${name} ji, aapka kul baqaya hisaab ₹${due.toFixed(2)} hai. Kripya jald se jald clear karein. Dhanyawad!`;
+            if (mode === 'whatsapp') {
+                window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
+            } else {
+                window.open(`sms:?&body=${encodeURIComponent(text)}`, '_blank');
+            }
+        }
+
+        function shareWhatsAppSingle() {
+            if(!selectedReceipt) return;
+            const r = selectedReceipt;
+            let detailStr = r.type === 'jutai' ? `${r.qty} ${r.calcType}` : r.type === 'chakki' ? `${r.weight} KG` : `${r.hours} Hrs`;
+            const message = `*कृषि हिसाब-किताब पर्ची*\n\n👤 *नाम:* ${r.name}\n📅 *तारीख:* ${formatDate(r.date)}\n🛠️ *सेवा:* ${r.type.toUpperCase()}\n📏 *विवरण:* ${detailStr}\n------------------------\n💵 *कुल बिल:* ₹${r.total.toFixed(2)}\n✅ *जमा:* ₹${r.paid.toFixed(2)}\n⚠️ *बाकी:* ₹${r.due.toFixed(2)}\n\n*धन्यवाद!*`;
+            window.open(`https://wa.me/?text=${encodeURIComponent(message)}`, '_blank');
+        }
+
+        function shareSMSSingle() {
+            if(!selectedReceipt) return;
+            const r = selectedReceipt;
+            const text = `Krishi Slip: Kisan ${r.name}, Bill: Rs.${r.total.toFixed(2)}, Jama: Rs.${r.paid.toFixed(2)}, Baqaya: Rs.${r.due.toFixed(2)}.`;
+            window.open(`sms:?&body=${encodeURIComponent(text)}`, '_blank');
+        }
+
+        function shareWhatsAppFarmer() {
+            if(!selectedFarmerName) return;
+            const billSum = document.getElementById('farmer-total-bill-sum').innerText;
+            const paidSum = document.getElementById('farmer-total-paid-sum').innerText;
+            const dueSum = document.getElementById('farmer-total-due-sum').innerText;
+            const message = `*कृषि हिसाब-किताब (खाता विवरण)*\n\n👤 *किसान:* ${selectedFarmerName}\n------------------------\n💵 *कुल सेवा:* ${billSum}\n✅ *कुल भुगतान:* ${paidSum}\n⚠️ *कुल बकाया:* ${dueSum}\n\nDhanyawad!`;
+            window.open(`https://wa.me/?text=${encodeURIComponent(message)}`, '_blank');
+        }
+
+        function shareSMSFarmer() {
+            if(!selectedFarmerName) return;
+            const dueSum = document.getElementById('farmer-total-due-sum').innerText;
+            window.open(`sms:?&body=${encodeURIComponent('Kisaan ' + selectedFarmerName + ' Net Due: ' + dueSum)}`, '_blank');
+        }
+
+        // ================= PDF PREVIEW AND GENERATION ENGINE =================
+        function previewSinglePDF() {
+            if (!selectedReceipt) return;
+            currentPdfType = "single";
+            const r = selectedReceipt;
+            let detailStr = r.type === 'jutai' ? `${r.qty} ${r.calcType}` : r.type === 'chakki' ? `${r.weight} KG` : `${r.hours} Hrs`;
+
+            document.getElementById('pdf-mock-page').innerHTML = `
+                <div class="space-y-6">
+                    <div class="text-center border-b border-dashed border-stone-300 pb-4">
+                        <h1 class="text-2xl font-bold text-emerald-800">🚜 कृषक सेवा रसीद 🌾</h1>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4 text-xs font-mono bg-stone-50 p-4 rounded-xl border border-stone-200">
+                        <div><p><strong>Parchi ID:</strong> ${r.id}</p><p><strong>Date:</strong> ${formatDate(r.date)}</p></div>
+                        <div class="text-right"><p><strong>Kisaan:</strong> ${r.name}</p><p><strong>Module:</strong> ${r.type.toUpperCase()}</p></div>
+                    </div>
+                    <div class="border-t border-b border-stone-300 py-4 space-y-2 text-sm text-stone-800">
+                        <div class="flex justify-between"><span>Detail:</span><strong>${detailStr}</strong></div>
+                        <div class="flex justify-between"><span>Rate:</span><strong>₹${r.rate}</strong></div>
+                    </div>
+                    <div class="space-y-2 text-sm font-mono pt-2">
+                        <div class="flex justify-between text-base font-bold border-b pb-2"><span>💵 Total Bill:</span><span>₹${r.total.toFixed(2)}</span></div>
+                        <div class="flex justify-between text-emerald-700 font-bold"><span>✅ Total Paid:</span><span>₹${r.paid.toFixed(2)}</span></div>
+                        <div class="flex justify-between text-rose-600 font-black border-t pt-2"><span>⚠️ Outstanding Due:</span><span>₹${r.due.toFixed(2)}</span></div>
+                    </div>
+                </div>`;
+            document.getElementById('pdf-preview-modal').classList.remove('hidden');
+        }
+
+        function previewFarmerPDF() {
+            if (!selectedFarmerName) return;
+            currentPdfType = "farmer";
+            const billSum = document.getElementById('farmer-total-bill-sum').innerText;
+            const paidSum = document.getElementById('farmer-total-paid-sum').innerText;
+            const dueSum = document.getElementById('farmer-total-due-sum').innerText;
+
+            let rowHtml = "";
+            const collectRows = (type, list) => {
+                list.forEach(item => {
+                    if (item.name.toLowerCase() === selectedFarmerName.toLowerCase()) {
+                        let category = type === 'jutai' ? "🚜 Jutai" : type === 'chakki' ? "🌾 Chakki" : "💧 Sinchai";
+                        rowHtml += `<tr class="text-[10px] border-b"><td class="py-2">${formatDate(item.date)}</td><td class="py-2 font-bold">${category}</td><td class="py-2 text-right">₹${item.rate}</td><td class="py-2 text-right">₹${item.total.toFixed(2)}</td><td class="py-2 text-right text-emerald-600">₹${item.paid.toFixed(2)}</td><td class="py-2 text-right text-rose-600 font-bold">₹${item.due.toFixed(2)}</td></tr>`;
+                    }
+                });
+            };
+            collectRows('jutai', appState.jutai); collectRows('chakki', appState.chakki); collectRows('pani', appState.pani);
+
+            document.getElementById('pdf-mock-page').innerHTML = `
+                <div class="space-y-6">
+                    <div class="text-center border-b border-dashed pb-4"><h1 class="text-2xl font-bold">👤 किसान लेजर खाता विवरणी 🚜</h1></div>
+                    <div class="bg-emerald-50 p-4 rounded-xl flex justify-between text-xs">
+                        <div><h3 class="text-lg font-bold">${selectedFarmerName}</h3></div>
+                        <div class="text-right"><p class="text-rose-600 font-bold">Net Due: ${dueSum}</p></div>
+                    </div>
+                    <table class="w-full text-left text-xs border-collapse">
+                        <thead><tr class="border-b font-bold text-stone-400"><th class="py-1">Date</th><th class="py-1">Module</th><th class="py-1 text-right">Rate</th><th class="py-1 text-right">Total</th><th class="py-1 text-right">Paid</th><th class="py-1 text-right">Due</th></tr></thead>
+                        <tbody>${rowHtml}</tbody>
+                    </table>
+                    <div class="flex justify-end pt-4"><div class="w-1/2 text-xs space-y-1 border-t pt-3">
+                        <div class="flex justify-between"><span>Total Bill:</span><strong>${billSum}</strong></div>
+                        <div class="flex justify-between text-emerald-600"><span>Total Paid:</span><strong>${paidSum}</strong></div>
+                        <div class="flex justify-between text-rose-600 font-bold"><span>Net Due:</span><strong>${dueSum}</strong></div>
+                    </div></div>
+                </div>`;
+            document.getElementById('pdf-preview-modal').classList.remove('hidden');
+        }
+
+        function closePdfPreviewModal() {
+            document.getElementById('pdf-preview-modal').classList.add('hidden');
+        }
+
+        function triggerDirectPdfDownload() {
+            const element = document.getElementById('pdf-mock-page');
+            const filename = currentPdfType === "single" ? `Krishi_Slip.pdf` : `${selectedFarmerName}_Statement.pdf`;
+            const opt = { margin: 10, filename: filename, image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2 }, jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' } };
+            
+            showToast('PDF create ho rahi hai...', 'success');
+            html2pdf().from(element).set(opt).save().then(() => {
+                showToast('PDF Download ho gayi! 🎉');
+            }).catch(() => showToast('Native print option try karein!', 'error'));
+        }
+
+        function triggerNativePrint() {
+            const printArea = document.getElementById('print-section');
+            printArea.innerHTML = document.getElementById('pdf-mock-page').innerHTML;
+            printArea.classList.remove('hidden');
+            setTimeout(() => { window.print(); printArea.classList.add('hidden'); }, 300);
+        }
+
+        // Safe Cloud Push with full Hindi/Unicode font preservation
+        async function pushToGitHub() {
+            const owner = isEnvActive(ENV_OWNER) ? ENV_OWNER : document.getElementById('gh-owner').value.trim();
+            const repo = isEnvActive(ENV_REPO) ? ENV_REPO : document.getElementById('gh-repo').value.trim();
+            const path = isEnvActive(ENV_PATH) ? ENV_PATH : document.getElementById('gh-path').value.trim();
+            const token = isEnvActive(ENV_TOKEN) ? ENV_TOKEN : document.getElementById('gh-token').value.trim();
+            if(!owner || !repo || !path || !token) { showToast('GitHub details fill karein!', 'error'); return; }
+
+            showToast('GitHub Cloud par save ho raha hai...', 'success');
+            const url = `https://api.github.com/repos/${owner}/${repo}/contents/${path}`;
+            let sha = null;
+            
+            try {
+                const getRes = await fetch(url + `?ref=main`, { headers: { 'Authorization': `token ${token}` } });
+                if (getRes.ok) { const getData = await getRes.json(); sha = getData.sha; }
+            } catch(e) {}
+
+            try {
+                const jsonString = JSON.stringify(appState, null, 2);
+                const bytes = new TextEncoder().encode(jsonString);
+                const contentBase64 = btoa(String.fromCharCode(...bytes));
+
+                const bodyData = { message: "Krishi Hisaab Sync: " + new Date().toLocaleString(), content: contentBase64, branch: "main" };
+                if(sha) bodyData.sha = sha;
+
+                const putRes = await fetch(url, { method: 'PUT', headers: { 'Authorization': `token ${token}`, 'Content-Type': 'application/json' }, body: JSON.stringify(bodyData) });
+                if(putRes.ok) {
+                    updateStatusBadge('success', 'Cloud Synced'); showToast('Data safsaf cloud par save ho gaya! 🎉');
+                } else { updateStatusBadge('error', 'Cloud Sync Error'); showToast('Upload Fail!', 'error'); }
+            } catch(err) { showToast('Error: ' + err.message, 'error'); }
+        }
+
+        // Safe Cloud Fetch with TextDecoder for Hindi/Unicode translation compatibility
+        async function pullFromGitHub() {
+            const owner = isEnvActive(ENV_OWNER) ? ENV_OWNER : document.getElementById('gh-owner').value.trim();
+            const repo = isEnvActive(ENV_REPO) ? ENV_REPO : document.getElementById('gh-repo').value.trim();
+            const path = isEnvActive(ENV_PATH) ? ENV_PATH : document.getElementById('gh-path').value.trim();
+            const token = isEnvActive(ENV_TOKEN) ? ENV_TOKEN : document.getElementById('gh-token').value.trim();
+            if(!owner || !repo || !path || !token) { showToast('GitHub details check karein!', 'error'); return; }
+
+            showToast('Data Cloud se aa raha hai...', 'success');
+            const url = `https://api.github.com/repos/${owner}/${repo}/contents/${path}?ref=main`;
+
+            try {
+                const getRes = await fetch(url, { headers: { 'Authorization': `token ${token}` } });
+                if(getRes.ok) {
+                    const getData = await getRes.json();
+                    
+                    // Safe UTF-8 Decode
+                    const binaryString = atob(getData.content.replace(/\s/g, ''));
+                    const bytes = Uint8Array.from(binaryString, c => c.charCodeAt(0));
+                    const decodedContent = new TextDecoder().decode(bytes);
+                    
+                    const parsedState = JSON.parse(decodedContent);
+                    if(parsedState.jutai && parsedState.chakki && parsedState.pani) {
+                        appState = parsedState; persistStateAndSync();
+                        showToast('Cloud se Data successfully restore ho gaya! 🎉');
+                        openTab('dashboard');
+                    } else { showToast('JSON Format sahi nahi hai.', 'error'); }
+                } else { showToast('Fetch failed! Repo name or Token check karein.', 'error'); }
+            } catch(err) { showToast('Cloud error: ' + err.message, 'error'); }
+        }
+
+        function downloadBackup() {
+            try {
+                const dataStr = JSON.stringify(appState, null, 2);
+                const blob = new Blob([dataStr], { type: "application/json" });
+                const url = URL.createObjectURL(blob);
+                const dlAnchorElem = document.createElement('a');
+                dlAnchorElem.setAttribute("href", url);
+                dlAnchorElem.setAttribute("download", `Krishi_Hisaab_Backup_${new Date().toISOString().substring(0,10)}.json`);
+                document.body.appendChild(dlAnchorElem); dlAnchorElem.click(); document.body.removeChild(dlAnchorElem);
+                URL.revokeObjectURL(url); showToast('Offline backup file download ho gayi hai!');
+            } catch (err) { showToast('Error: ' + err.message, 'error'); }
+        }
+
+        function uploadBackup(event) {
+            const file = event.target.files[0]; if (!file) return;
+            document.getElementById('file-chosen-text').innerText = file.name;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const parsed = JSON.parse(e.target.result);
+                    if (parsed.jutai && parsed.chakki && parsed.pani) {
+                        appState = parsed; persistStateAndSync();
+                        showToast('Local file se data wapas aa gaya!'); openTab('dashboard');
+                    } else { showToast('Galat format.', 'error'); }
+                } catch (err) { showToast('File error.', 'error'); }
+            };
+            reader.readAsText(file);
+        }
+
+        function exportCSV(type) {
+            let data = appState[type];
+            if (data.length === 0) { showToast('Koi data nahi hai!', 'error'); return; }
+            let csvContent = "data:text/csv;charset=utf-8,\uFEFF"; // \uFEFF added for proper Excel Hindi alignment
+            if (type === 'jutai') {
+                csvContent += "Tareekh,Kisaan,Tractor,Type,Qty,Rate,Total,Paid,Baqaya\n";
+                data.forEach(item => { csvContent += `${item.date},"${item.name}","${item.driver}",${item.calcType},${item.qty},${item.rate},${item.total},${item.paid},${item.due}\n`; });
+            } else if (type === 'chakki') {
+                csvContent += "Tareekh,Kisaan,Anaaj,Vajan(KG),Rate,Total,Paid,Baqaya\n";
+                data.forEach(item => { csvContent += `${item.date},"${item.name}","${item.grain}",${item.weight},${item.rate},${item.total},${item.paid},${item.due}\n`; });
+            } else if (type === 'pani') {
+                csvContent += "Tareekh,Kisaan,Source,Hours,Rate,Total,Paid,Baqaya\n";
+                data.forEach(item => { csvContent += `${item.date},"${item.name}","${item.source}",${item.hours},${item.rate},${item.total},${item.paid},${item.due}\n`; });
+            }
+            const encodedUri = encodeURI(csvContent); const link = document.createElement("a");
+            link.setAttribute("href", encodedUri); link.setAttribute("download", `Krishi_${type}.csv`);
+            document.body.appendChild(link); link.click(); document.body.removeChild(link);
+        }
+
+        window.onload = function() { loadCredentials(); updateDashboard(); renderTables(); }
+    </script>
+</body>
+</html>
